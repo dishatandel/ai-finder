@@ -6,7 +6,7 @@ import { ToolDetails } from './components/ToolDetails';
 import { searchTools, getToolsByCategory } from './api/toolService';
 import { Loader2, Bookmark } from 'lucide-react';
 
-// Guarantee static dataset loads on Vercel without backend
+// Static Fallback Data with tags formatted as Strings (matching .split())
 const FALLBACK_TOOLS = [
   {
     id: 1,
@@ -15,7 +15,7 @@ const FALLBACK_TOOLS = [
     description: "Conversational AI model for drafting text, coding help, humanizing text, and brainstorming.",
     pricingType: "Freemium",
     websiteUrl: "https://chatgpt.com",
-    tags: ["chat", "writing", "coding assistant", "humanizer"]
+    tags: "chat, writing, coding assistant, humanizer"
   },
   {
     id: 2,
@@ -24,7 +24,7 @@ const FALLBACK_TOOLS = [
     description: "Generates high-quality art and photorealistic images from textual prompts.",
     pricingType: "Paid",
     websiteUrl: "https://midjourney.com",
-    tags: ["image generator", "art", "design"]
+    tags: "image generator, art, design"
   },
   {
     id: 3,
@@ -33,7 +33,7 @@ const FALLBACK_TOOLS = [
     description: "Generative UI system powered by AI to create React components from prompts.",
     pricingType: "Freemium",
     websiteUrl: "https://v0.dev",
-    tags: ["coding assistant", "frontend", "ui"]
+    tags: "coding assistant, frontend, ui"
   },
   {
     id: 4,
@@ -42,7 +42,7 @@ const FALLBACK_TOOLS = [
     description: "Advanced AI assistant capable of long-form writing, complex reasoning, and coding.",
     pricingType: "Freemium",
     websiteUrl: "https://claude.ai",
-    tags: ["chat", "reasoning", "coding assistant"]
+    tags: "chat, reasoning, coding assistant"
   },
   {
     id: 5,
@@ -51,7 +51,7 @@ const FALLBACK_TOOLS = [
     description: "AI-powered tool that generates visually appealing presentations, documents, and web pages.",
     pricingType: "Freemium",
     websiteUrl: "https://gamma.app",
-    tags: ["presentation", "PPT maker", "slides"]
+    tags: "presentation, PPT maker, slides"
   },
   {
     id: 6,
@@ -60,7 +60,7 @@ const FALLBACK_TOOLS = [
     description: "Interactive tool to summarize, ask questions, and analyze long PDF documents instantly.",
     pricingType: "Free",
     websiteUrl: "https://chatpdf.com",
-    tags: ["PDF AI", "pdf", "summarizer", "documents"]
+    tags: "PDF AI, pdf, summarizer, documents"
   },
   {
     id: 7,
@@ -69,12 +69,11 @@ const FALLBACK_TOOLS = [
     description: "Create professional resumes and cover letters with AI assistance in minutes.",
     pricingType: "Freemium",
     websiteUrl: "https://kickresume.com",
-    tags: ["resume builder", "career", "jobs"]
+    tags: "resume builder, career, jobs"
   }
 ];
 
 export default function App() {
-  // Initialize state directly with FALLBACK_TOOLS so it never shows 0 on load
   const [tools, setTools] = useState(FALLBACK_TOOLS);
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -83,14 +82,21 @@ export default function App() {
   const [selectedTool, setSelectedTool] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Persistent bookmarks from browser localStorage
   const [bookmarks, setBookmarks] = useState(() => {
-    const saved = localStorage.getItem('aifinder_bookmarks');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('aifinder_bookmarks');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
   });
 
   useEffect(() => {
-    localStorage.setItem('aifinder_bookmarks', JSON.stringify(bookmarks));
+    try {
+      localStorage.setItem('aifinder_bookmarks', JSON.stringify(bookmarks));
+    } catch (e) {
+      console.error(e);
+    }
   }, [bookmarks]);
 
   const toggleBookmark = (id) => {
@@ -106,7 +112,7 @@ export default function App() {
       tool.name.toLowerCase().includes(q) ||
       tool.description.toLowerCase().includes(q) ||
       tool.category.toLowerCase().includes(q) ||
-      tool.tags.some(tag => tag.toLowerCase().includes(q))
+      tool.tags.toLowerCase().includes(q)
     );
   };
 
@@ -140,7 +146,7 @@ export default function App() {
         } else {
           const catFiltered = FALLBACK_TOOLS.filter(tool =>
             tool.category.toLowerCase().includes(cat.toLowerCase()) ||
-            tool.tags.some(tag => tag.toLowerCase().includes(cat.toLowerCase()))
+            tool.tags.toLowerCase().includes(cat.toLowerCase())
           );
           setTools(catFiltered.length > 0 ? catFiltered : FALLBACK_TOOLS);
         }
@@ -148,7 +154,7 @@ export default function App() {
     } catch (err) {
       const catFiltered = FALLBACK_TOOLS.filter(tool =>
         tool.category.toLowerCase().includes(cat.toLowerCase()) ||
-        tool.tags.some(tag => tag.toLowerCase().includes(cat.toLowerCase()))
+        tool.tags.toLowerCase().includes(cat.toLowerCase())
       );
       setTools(catFiltered.length > 0 ? catFiltered : FALLBACK_TOOLS);
     } finally {
@@ -160,7 +166,6 @@ export default function App() {
     fetchTools('');
   }, []);
 
-  // Filter tools client-side by Pricing and Bookmarks
   const filteredTools = tools.filter((tool) => {
     const matchesPricing = selectedPricing === 'ALL' || tool.pricingType === selectedPricing;
     const matchesBookmark = !showOnlyBookmarks || bookmarks.includes(tool.id);
@@ -174,7 +179,6 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <Hero query={query} setQuery={setQuery} onSearch={fetchTools} />
 
-        {/* Pricing & Bookmark Controls */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8 bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono text-slate-400 mr-2">Pricing:</span>
@@ -206,13 +210,11 @@ export default function App() {
           </button>
         </div>
 
-        {/* Results Metadata */}
         <div className="flex items-center justify-between mb-6 text-xs sm:text-sm text-slate-400 font-mono">
           <span>Found {filteredTools.length} AI tools</span>
           {selectedCategory !== 'ALL' && <span>Filter: {selectedCategory}</span>}
         </div>
 
-        {/* Grid and States */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Loader2 className="w-8 h-8 animate-spin text-cyan-400 mb-3" />
