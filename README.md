@@ -10,7 +10,7 @@ A full-stack web application for searching, filtering, and bookmarking AI tools.
 * **Pricing & Category Filters:** Narrow down results by Free, Freemium, or Paid tiers, along with dedicated category shortcuts.
 * **Local Bookmarks:** Save tools directly in your browser using `localStorage` without needing an account.
 * **Responsive UI:** Clean dark interface built with Tailwind CSS v4 and Lucide icons.
-
+![AIFinder Demo](frontend/public/demo.gif)
 ---
 
 ## Tech Stack
