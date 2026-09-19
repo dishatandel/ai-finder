@@ -1,0 +1,7 @@
+oracleJdk-27/
+node_modules/
+target/
+bin/
+*.class
+*.jar
+.env
